@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +27,10 @@ SECRET_KEY = 'django-insecure-2y6d-s&6ysk&p4kq2i^fyh+u@pnj$_09x4poj@jvf=iix5-kui
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+
+# Custom settings
+FASTAPI_URL = os.getenv('FASTAPI_URL', 'http://localhost:8001')
 
 
 # Application definition

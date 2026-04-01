@@ -1,6 +1,7 @@
 from django.shortcuts import render
 import requests
 from .forms import CarPriceForm
+from django.conf import settings
 
 def predict_car_price(request):
     prediction = None
@@ -27,7 +28,7 @@ def predict_car_price(request):
             }
             # Call FastAPI
             try:
-                response = requests.post('http://localhost:8001/predict', json=data)
+                response = requests.post(settings.FASTAPI_URL + '/predict', json=data)
                 if response.status_code == 200:
                     prediction = response.json()['predicted_price']
                 else:
