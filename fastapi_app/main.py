@@ -7,8 +7,7 @@ app = FastAPI(title="Car Price Prediction API")
 
 # Load the model and preprocessing objects
 try:
-    lr_model = joblib.load('../car_price_model.pkl')
-    scaler = joblib.load('../scaler.pkl')
+    model = joblib.load('../car_price_stack_model.pkl')   # Stacking ensemble (best R²)
     le_manufacturer = joblib.load('../manufacturer_encoder.pkl')
     le_model = joblib.load('../model_encoder.pkl')
     le_category = joblib.load('../category_encoder.pkl')
@@ -41,7 +40,6 @@ class CarFeatures(BaseModel):
 @app.post("/predict")
 def predict_price(car: CarFeatures):
     try:
-        # Encode categorical variables
         manufacturer_enc = le_manufacturer.transform([car.manufacturer])[0]
         model_enc = le_model.transform([car.model])[0]
         category_enc = le_category.transform([car.category])[0]
@@ -51,14 +49,14 @@ def predict_price(car: CarFeatures):
         wheel_enc = le_wheel.transform([car.wheel])[0]
         color_enc = le_color.transform([car.color])[0]
 
-        # Create feature array
-        features = np.array([[car.levy, car.prod_year, car.engine_volume, car.mileage, car.cylinders, car.airbags, car.leather_interior, manufacturer_enc, model_enc, category_enc, fuel_enc, gear_enc, drive_enc, wheel_enc, color_enc]])
+        features = np.array([[car.levy, car.prod_year, car.engine_volume, car.mileage,
+                               car.cylinders, car.airbags, car.leather_interior,
+                               manufacturer_enc, model_enc, category_enc,
+                               fuel_enc, gear_enc, drive_enc, wheel_enc, color_enc]])
 
-        # Scale features
-        features_scaled = scaler.transform(features)
-
-        # Make prediction
-        prediction = lr_model.predict(features_scaled)[0]
+        # Stacking model has internal scalers — predict then reverse log transform
+        log_pred = model.predict(features)[0]
+        prediction = float(np.expm1(log_pred))
 
         return {"predicted_price": round(prediction, 2)}
     except Exception as e:
